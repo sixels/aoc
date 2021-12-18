@@ -23,7 +23,7 @@ days="$(fd '^day[0-9]+$' "$base_dir")"
 days_name="$(basename "$days")"
 
 echo "Copying templates"
-sed "s/\#DAY\#/$day_name/" templates/main.c > "$next_day_path/main.c"
+sed "s/\#DAY\#/$days_name/" templates/main.c > "$next_day_path/main.c"
 touch "$next_day_path/sample.txt" "$next_day_path/inputs.txt"
 
 echo "Updating Makefile"
