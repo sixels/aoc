@@ -36,7 +36,7 @@ void print_bits(int *bits) {
   printf("\n");
 }
 
-void next_bits(char **input, int *bits) {
+void next_bits(char **input, int *bits, int *sum) {
   int offset = 1;
   int i = 0;
   for (char ch = **input;; ch = (*input)[offset++]) {
@@ -45,7 +45,12 @@ void next_bits(char **input, int *bits) {
       break;
     }
 
-    bits[i++] += ch - '0';
+    if (bits)
+      bits[i] = ch - '0';
+    if (sum)
+      sum[i] += ch - '0';
+
+    i++;
   }
 }
 
@@ -53,12 +58,12 @@ void part_one() {
   char *inputs = read_file();
   char *ptr = inputs;
 
-  int bits[BITSLEN] = {};
-  memset(bits, 0, BITSLEN * sizeof(int));
+  int sum[BITSLEN] = {};
+  memset(sum, 0, BITSLEN * sizeof(int));
 
   int lines = 0;
   do {
-    next_bits(&inputs, bits);
+    next_bits(&inputs, NULL, sum);
     // print_bits(bits);
     lines++;
   } while (*inputs != 0);
@@ -66,8 +71,8 @@ void part_one() {
   int mean = lines / 2, g = 0, e = 0;
 
   for (int b = 0; b < BITSLEN; b++) {
-    g |= (bits[b] > mean) << (BITSLEN - b - 1);
-    e |= (bits[b] < mean) << (BITSLEN - b - 1);
+    g |= (sum[b] > mean) << (BITSLEN - b - 1);
+    e |= (sum[b] < mean) << (BITSLEN - b - 1);
   }
 
   printf("Power consumption = %d\n", g * e);
@@ -75,7 +80,90 @@ void part_one() {
   free(ptr);
 }
 
-void part_two() {}
+typedef struct trie {
+  int n;
+  struct trie *next[2];
+} Trie;
+
+void part_two() {
+  char *inputs = read_file();
+  char *ptr = inputs;
+
+  int bits[BITSLEN] = {};
+  int sum[BITSLEN] = {};
+
+  memset(bits, 0, BITSLEN * sizeof(int));
+  memset(sum, 0, BITSLEN * sizeof(int));
+
+  Trie *trie = malloc(sizeof(Trie));
+  Trie *aux = trie;
+  do {
+    next_bits(&inputs, bits, sum);
+    aux = trie;
+    for (int b = 0; b < BITSLEN; b++) {
+      int bit = bits[b];
+
+      if (aux->next[bit] == NULL) {
+
+        Trie *next = malloc(sizeof(Trie));
+        *next = (Trie){
+            .next = {NULL, NULL},
+            .n = 0,
+        };
+
+        aux->next[bit] = next;
+      }
+
+      aux->next[bit]->n += 1;
+      aux = aux->next[bit];
+    }
+  } while (*inputs != 0);
+
+  int oxygen = 0;
+  int co2 = 0;
+  Trie *oxygen_trie = trie;
+  Trie *co2_trie = trie;
+
+  for (int b = 0; b < BITSLEN; b++) {
+    Trie *p1 = NULL, *p2 = NULL;
+
+    if (oxygen_trie) {
+      int z = oxygen_trie->next[0] ? oxygen_trie->next[0]->n : 0;
+      int o = oxygen_trie->next[1] ? oxygen_trie->next[1]->n : 0;
+
+      int mcb = o >= z;
+
+      oxygen |= mcb << (BITSLEN - b - 1);
+      p1 = oxygen_trie;
+      oxygen_trie = oxygen_trie->next[mcb];
+    }
+
+    if (co2_trie) {
+
+      int z = co2_trie->next[0] ? co2_trie->next[0]->n : 100000000;
+      int o = co2_trie->next[1] ? co2_trie->next[1]->n : 100000000;
+
+      int lcb = o < z;
+
+      co2 |= lcb << (BITSLEN - b - 1);
+      p2 = co2_trie;
+      co2_trie = co2_trie->next[lcb];
+    }
+
+    // clean everything on the go
+    if (p1 == p2) {
+      free(p1);
+    } else {
+      free(p1);
+      free(p2);
+    }
+  }
+
+  printf("Oxygen = %d\nCO_2 = %d\nLife supporting rating: %d\n", oxygen, co2,
+         oxygen * co2);
+
+  free(ptr);
+}
 
 int main(void) {
 #ifdef PARTONE

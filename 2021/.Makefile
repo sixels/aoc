@@ -9,7 +9,7 @@ all:
 .PHONY: day03
 day03:
 	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day03/main.c
-	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day03/main.c
+	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day03/main.c -g
 
 .PHONY: day02
 day02:
