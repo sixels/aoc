@@ -39,7 +39,7 @@ for day in $days_name; do
 %s:
 \t$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out %s
 \t$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out %s
-' "$day" "$day" "$base_dir/$day/main.c" "$base_dir/$day/main.c" >> "$base_dir/Makefile";
+' "$day" "$day" "$base_dir/src/$day/main.c" "$base_dir/src/$day/main.c" >> "$base_dir/Makefile";
 done
 
 diff -u "$base_dir/.Makefile" "$base_dir/Makefile" | diff-so-fancy
