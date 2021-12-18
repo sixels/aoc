@@ -75,7 +75,29 @@ void part_one() {
   free(ptr);
 }
 
-void part_two() {}
+void part_two() {
+  char *inputs = read_file();
+  char *ptr = inputs;
+
+  int x = 0, ap = 0, an = 0, y = 0;
+
+  int *table[] = {[FORWARD] = &x, [UP] = &an, [DOWN] = &ap};
+
+  do {
+    Instruction inst = next_instruction(&inputs);
+
+    *table[inst.inst] += inst.value;
+    if (inst.inst == FORWARD) {
+      y += (ap - an) * inst.value;
+    }
+
+  } while (*inputs != 0);
+
+  const int aim = ap - an;
+  printf("x\taim\ty\n%d\t%d\t%d\n\nx * y = %d\n", x, aim, y, x * y);
+
+  free(ptr);
+}
 
 int main(void) {
 #ifdef PARTONE
