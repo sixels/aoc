@@ -20,24 +20,26 @@ echo "Creating day $next_day at $next_day_path"
 mkdir -pv $next_day_path
 
 days="$(fd '^day[0-9]+$' "$base_dir")"
-days_name="$(basename "$days")"
+days_name="$(fd '^day[0-9+$]' --exec basename)"
 
 echo "Copying templates"
-sed "s/\#DAY\#/$days_name/" templates/main.c > "$next_day_path/main.c"
+next_day_name="$(tail -n1 <(days_name))"
+sed "s/\#DAY\#/$next_day_name/" templates/main.c > "$next_day_path/main.c"
 touch "$next_day_path/sample.txt" "$next_day_path/inputs.txt"
 
 echo "Updating Makefile"
 cp -v "$base_dir/Makefile" "$base_dir/.Makefile"
 cp -v "$base_dir/templates/Makefile" "$base_dir/Makefile"
 
-sed -i "s/\# MAKE ALL DAYS$/$days_name/g" "$base_dir/Makefile"
+days_name_esc="$(tr '\n' ' ' <<<$days_name)"
+sed -i "s/\# MAKE ALL DAYS/$days_name_esc/g" "$base_dir/Makefile"
 for day in $days_name; do
     printf '
 .PHONY: %s
 %s:
 \t$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out %s
 \t$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out %s
-' "$day" "$day" "$next_day_path/main.c" "$next_day_path/main.c" >> "$base_dir/Makefile";
+' "$day" "$day" "$base_dir/$day/main.c" "$base_dir/$day/main.c" >> "$base_dir/Makefile";
 done
 
 diff -u "$base_dir/.Makefile" "$base_dir/Makefile" | diff-so-fancy
