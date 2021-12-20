@@ -30,12 +30,9 @@ void part_one(char *input) {
     const int x2 = next_num(&input);
     const int y2 = next_num(&input);
 
-
     if (x2 != x1 && y2 != y1) continue;
-
     const int minx = min(x1, x2), maxx = max(x1, x2);
     const int miny = min(y1, y2), maxy = max(y1, y2);
-
 
     for (int y = miny; y <= maxy; y++) {
       for (int x = minx; x <= maxx; x++) {
@@ -58,7 +55,52 @@ void part_one(char *input) {
   printf("Overlaps: %d\n", overlaps);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+  int overlaps = 0;
+  int board[N][N] = {{}};
+
+  // parse points
+  do {
+    const int x1 = next_num(&input);
+    const int y1 = next_num(&input);
+
+    const int x2 = next_num(&input);
+    const int y2 = next_num(&input);
+
+    // if (x2 != x1 && y2 != y1) continue;
+    const int minx = min(x1, x2), maxx = max(x1, x2);
+    const int miny = min(y1, y2), maxy = max(y1, y2);
+
+    // vertical lines have undefined slope
+    if (x2 == x1) {
+      for (int y = miny; y <= maxy; y++)
+        for (int x = minx; x <= maxx; x++) overlaps += ++board[y][x] == 2;
+    } else {
+      // slope --> (y-y0)/(x-x0)
+      const float m = (float)(y2 - y1) / (float)(x2 - x1);
+      // y-intercept (x = 0) --> m * (0-x0) + y0
+      const float b = m * (0 - x1) + y1;
+
+      for (int y = miny; y <= maxy; y++)
+        for (int x = minx; x <= maxx; x++)
+          // check wheter the (x,y) is on the line function
+          if ((float)(m * x + b) - y == 0) overlaps += ++board[y][x] == 2;
+    }
+
+    // debug
+    // for (int y = 0; y < N; y++) {
+    //   for (int x = 0; x < N; x++) {
+    //     int point = board[y][x];
+    //     printf("%c", point ? point + '0' : '.');
+    //   }
+    //   printf("\n");
+    // }
+    // printf("=======================\n");
+
+  } while (*input != '\0');
+
+  printf("Overlaps: %d\n", overlaps);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
