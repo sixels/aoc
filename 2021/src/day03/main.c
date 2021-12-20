@@ -26,7 +26,7 @@ char *read_file() {
   char *content = malloc(file_size + 1);
   fread(content, sizeof(char), file_size, file);
 
-  fclose(input)
+  fclose(file);
   return content;
 }
 
