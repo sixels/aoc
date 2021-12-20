@@ -20,10 +20,10 @@ echo "Creating day $next_day at $next_day_path"
 mkdir -pv $next_day_path
 
 days="$(fd '^day[0-9]+$' "$base_dir")"
-days_name="$(fd '^day[0-9+$]' --exec basename)"
+days_name="$(fd '^day[0-9+$]' --exec basename | sort)"
 
 echo "Copying templates"
-next_day_name="$(tail -n1 <(days_name))"
+next_day_name="$(tail -n1 <<<$days_name)"
 sed "s/\#DAY\#/$next_day_name/" templates/main.c > "$next_day_path/main.c"
 touch "$next_day_path/sample.txt" "$next_day_path/inputs.txt"
 
@@ -37,8 +37,8 @@ for day in $days_name; do
     printf '
 .PHONY: %s
 %s:
-\t$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out %s
-\t$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out %s
+\t$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out %s lib/aoclib.c
+\t$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out %s lib/aoclib.c
 ' "$day" "$day" "$base_dir/src/$day/main.c" "$base_dir/src/$day/main.c" >> "$base_dir/Makefile";
 done
 
