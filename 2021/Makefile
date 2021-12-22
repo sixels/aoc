@@ -37,5 +37,5 @@ day06:
 
 .PHONY: day07
 day07:
-	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day07/main.c lib/aoclib.c
-	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day07/main.c lib/aoclib.c
+	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day07/main.c lib/aoclib.c -lm
+	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day07/main.c lib/aoclib.c -lm

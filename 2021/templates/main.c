@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <limits.h>
+#include <stdint.h>
+#include <math.h>
 
 #include "aoclib.h"
 
