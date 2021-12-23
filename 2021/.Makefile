@@ -1,8 +1,8 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -Wshadow -Ilib -g
+CFLAGS := -Wall -Wextra -Wshadow -Ilib -g -lm
 
 all:
-	day01 day02 day03 day04 day05 day06 day07
+	day01 day02 day03 day04 day05 day06 day07 day08 
 
 
 .PHONY: day01
@@ -37,5 +37,10 @@ day06:
 
 .PHONY: day07
 day07:
-	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day07/main.c lib/aoclib.c -lm
-	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day07/main.c lib/aoclib.c -lm
+	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day07/main.c lib/aoclib.c
+	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day07/main.c lib/aoclib.c
+
+.PHONY: day08
+day08:
+	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day08/main.c lib/aoclib.c
+	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day08/main.c lib/aoclib.c
