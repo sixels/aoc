@@ -86,10 +86,28 @@ void part_one(char *input) {
     flashes += update_board(board);
     // print_board(board);
   }
-  printf("FLASHED %d times\n", flashes);
+  printf("FLASHED %d TIMES\n", flashes);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+  int board[NN] = {};
+  memset(board, 0, sizeof(board));
+
+  for (int i = 0; *input != 0 && i < NN; input++) {
+    if (*input == '\n') continue;
+    board[i++] = *input - '0';
+  }
+
+  int i = 0;
+  while (true) {
+    i++;
+
+    int flashes = update_board(board);
+    // print_board(board);
+    if (flashes == NN) break;
+  }
+  printf("SYNCHRONIZED AFTER %d STEPS\n", i);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
