@@ -38,10 +38,8 @@ char pairs[128] = {
 };
 
 int points[128] = {
-    [CPAR] = 3,
-    [CBRK] = 57,
-    [CBRC] = 1197,
-    [CARR] = 25137,
+    [OPAR] = 1, [OBRK] = 2,  [OBRC] = 3,    [OARR] = 4,
+    [CPAR] = 3, [CBRK] = 57, [CBRC] = 1197, [CARR] = 25137,
 };
 
 void part_one(char *input) {
@@ -72,7 +70,7 @@ void part_one(char *input) {
           int i = --stack_len;
 
           if (pairs[stack[i]] != c) {
-            printf("LINE %d: Expected %c, but found %c instead\n", line_nr,
+            printf("LINE %02d: Expected %c, but found %c instead\n", line_nr,
                    pairs[stack[i]], c);
             score += points[(int)c];
             skip = true;
@@ -89,7 +87,64 @@ void part_one(char *input) {
   printf("TOTAL SCORE: %d\n", score);
 }
 
-void part_two(char *input) {}
+int score_sort(const void *l, const void *r) {
+  const uint64_t a = *(const uint64_t*) l;
+  const uint64_t b = *(const uint64_t*) r;
+  return (a > b) - (a < b);
+}
+
+void part_two(char *input) {
+  uint64_t scores[150] = {}, scores_len = 0;
+
+  int line_nr = 0;
+  while (*input != 0) {
+    line_nr++;
+    bool corrupted = false;
+
+    Token stack[STACK_SIZE] = {};
+    memset(stack, 0, sizeof(stack));
+    int stack_len = 0;
+
+    for (char c = *(input++); c != '\n' && c != '\0'; c = *(input++)) {
+      if (corrupted == true) continue;
+
+      switch (c) {
+        case OBRC:
+        case OBRK:
+        case OPAR:
+        case OARR:
+          stack[stack_len++] = (Token)c;
+          break;
+
+        case CBRC:
+        case CBRK:
+        case CPAR:
+        case CARR:
+          int i = --stack_len;
+          corrupted = pairs[stack[i]] != c;
+
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    // we want only incomplete lines
+    if (corrupted == true || stack_len == 0) continue;
+
+    uint64_t score = 0;
+    for (int i = stack_len - 1; i >= 0; i--) {
+      score = 5 * score + (uint64_t)points[stack[i]];
+    }
+
+    printf("LINE %02d: SCORE: %ld\n", line_nr, score);
+    scores[scores_len++] = score;
+  }
+
+  qsort(&scores[0], scores_len, sizeof(uint64_t), score_sort);
+  printf("MIDDLE SCORE: %lu\n", scores[scores_len / 2]);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
