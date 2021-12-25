@@ -26,14 +26,13 @@ char *toktok(char **str, char *del) {
   if (!str || !*str) return NULL;
 
   char *token = *str;
-  int dels[128] = {0};
+  char dels[128] = {0};
 
-  while (del && *(del)) dels[(int)*(del++)] = 1;
+  while (del && *del) dels[(int)*(del++)] = 1;
+  dels[0] = 1;
 
-  while (**str) {
-    char c = *((*str)++);
-    if (dels[(int)c]) return token;
-  }
+  while (1)
+    if (dels[(int)*((*str)++)]) break;
 
   return token;
 }
