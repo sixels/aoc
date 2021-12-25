@@ -89,7 +89,58 @@ void part_one(char *input) {
   printf("AMOUNT OF DOTS: %d\n", dots);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+  // get the coords
+
+  int *paper = calloc(N * N, sizeof(int));
+  int paper_x = N, paper_y = N, maxx = 0, maxy = 0;
+
+  while (*input && *input != '\n') {
+    const int x = atoi(toktok(&input, ","));
+    const int y = atoi(toktok(&input, "\n"));
+
+    maxx = max(x, maxx);
+    maxy = max(y, maxy);
+
+    paper[y * paper_x + x] = 1;
+  }
+
+  paper_x = maxx + 1;
+  paper_y = maxy + 1;
+
+  // fold
+  while (*input) {
+    char *_axis = toktok(&input, "=");
+    bool x_axis = _axis[(int)(input - _axis) - 2] == 'x';
+
+    int offset = atoi(toktok(&input, "\n"));
+
+    int table[2][2] = {
+        // y     x
+        {offset, 0},  // axis != x
+        {0, offset}   // axis == x
+    };
+
+    for (int y = table[x_axis][0]; y < paper_y; y++) {
+      for (int x = table[x_axis][1]; x < paper_x; x++) {
+        if (paper[y * N + x] == 1) {
+          const int yoff = x_axis ? 0 : offset, xoff = x_axis ? offset : 0;
+
+          const int y1 = yoff ? 2 * yoff - y : y, x1 = xoff ? 2 * xoff - x : x;
+
+          if (x1 >= 0 && y1 >= 0) {
+            paper[y1 * N + x1] = 1;
+          }
+        }
+      }
+    }
+
+    paper_y -= table[x_axis][0];
+    paper_x -= table[x_axis][1];
+  }
+  print_paper(paper, paper_x, paper_y);
+  free(paper);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
