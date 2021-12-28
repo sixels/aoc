@@ -77,8 +77,48 @@ void dump_packet(uint8_t *packet, size_t len) {
   printf("\n");
 }
 
-// return the packet lenght
-void parse_packet(uint8_t *packet, uint32_t *position, uint32_t *total) {
+typedef uint64_t (*OpFn)(uint64_t a, uint64_t b);
+
+uint64_t op_nop(uint64_t a, uint64_t b) {
+  (void)(b);  // send b to the Void :p
+  return a;
+}
+uint64_t op_sum(uint64_t a, uint64_t b) {
+  printf("%.*s// CALL OP %lu+%lu\n", table_depth, tabs, a, b);
+  return a + b;
+}
+uint64_t op_prod(uint64_t a, uint64_t b) {
+  printf("%.*s// CALL OP %lu*%lu\n", table_depth, tabs, a, b);
+  return a * b;
+}
+uint64_t op_min(uint64_t a, uint64_t b) {
+  printf("%.*s// CALL OP min(%lu,%lu)\n", table_depth, tabs, a, b);
+  return min(a, b);
+}
+uint64_t op_max(uint64_t a, uint64_t b) {
+  printf("%.*s// CALL OP max(%lu,%lu)\n", table_depth, tabs, a, b);
+  return max(a, b);
+}
+uint64_t op_gt(uint64_t a, uint64_t b) {
+  printf("%.*s// CALL OP %lu>%lu\n", table_depth, tabs, a, b);
+  return a > b;
+}
+uint64_t op_lt(uint64_t a, uint64_t b) {
+  printf("%.*s// CALL OP %lu<%lu\n", table_depth, tabs, a, b);
+  return a < b;
+}
+uint64_t op_eq(uint64_t a, uint64_t b) {
+  printf("%.*s// CALL OP %lu=%lu\n", table_depth, tabs, a, b);
+  return a == b;
+}
+
+static OpFn op_table[8] = {
+    [0] = op_sum, [1] = op_prod, [2] = op_min, [3] = op_max,
+    [4] = op_nop, [5] = op_gt,   [6] = op_lt,  [7] = op_eq,
+};
+
+int64_t parse_packet(uint8_t *packet, uint32_t *position, uint32_t *ver_sum,
+                     int64_t *op_total) {
   printf("%.*s{\n", table_depth, tabs);
   table_depth++;
 
@@ -94,23 +134,30 @@ void parse_packet(uint8_t *packet, uint32_t *position, uint32_t *total) {
   ptable("Type", type, 3);
   pos += 3;
 
-  *total += version;
+  *ver_sum += version;
 
+  int64_t ret_val = -1;
   if (type == 4) {
-    uint32_t val = 0, b = 0;
+    ret_val = 0;
+    size_t bitlen = 0;
     while (pos < UINT32_MAX - 5) {
-      uint32_t value = nbits_at(packet, 5, pos) & 0b11111;
+      uint32_t c = nbits_at(packet, 1, pos);
+      uint32_t aux = nbits_at(packet, 4, pos+1);
       pos += 5;
-      b += 4;
-      val = (val << 4) | (value & 0b1111);
-      if (((value >> 4) & 1) == 0) break;
-    }
-    ptable("Val", val, b);
+      bitlen+=4;
 
+      ret_val = ((ret_val << 4) | aux);
+      if (c == 0) break;
+    }
+    ptable("Val", ret_val, bitlen);
   } else {
     uint8_t length_type = nbits_at(packet, 1, pos) != 0;
     ptable("LType", length_type, 3);
     pos += 1;
+
+    assert(type != 4);
+    OpFn *op_cb = &op_table[type];
+    int64_t tmp_total = -1;
 
     if (length_type == 0) {
       uint32_t length = nbits_at(packet, 15, pos);
@@ -120,7 +167,12 @@ void parse_packet(uint8_t *packet, uint32_t *position, uint32_t *total) {
       length += pos;
       printf("%.*s\"SubPackets\": [\n", table_depth, tabs);
       while (pos < length) {
-        parse_packet(packet, &pos, total);
+        int64_t v = parse_packet(packet, &pos, ver_sum, op_total);
+        if (tmp_total < 0) {
+          tmp_total = v;
+        } else {
+          tmp_total = (*op_cb)(tmp_total, v);
+        }
       }
       printf("%.*s]\n", table_depth, tabs);
     } else {
@@ -130,15 +182,23 @@ void parse_packet(uint8_t *packet, uint32_t *position, uint32_t *total) {
 
       printf("%.*s\"SubPackets\": [\n", table_depth, tabs);
       for (size_t i = 0; i < length; i++) {
-        parse_packet(packet, &pos, total);
+        int64_t v = parse_packet(packet, &pos, ver_sum, op_total);
+        if (tmp_total < 0) {
+          tmp_total = v;
+        } else {
+          tmp_total = (*op_cb)(tmp_total, v);
+        }
       }
       printf("%.*s]\n", table_depth, tabs);
     }
+    *op_total = tmp_total;
+    ret_val = tmp_total;
   }
   *position = pos;
 
   table_depth--;
   printf("%.*s},\n", table_depth, tabs);
+  return ret_val;
 }
 
 void part_one(char *input) {
@@ -158,14 +218,33 @@ void part_one(char *input) {
   // dump_packet(packet, packet_len);
 
   // parse the packet and get the sum of the versions
-  parse_packet(packet, &position, &result);
-
-  assert(position < packet_len * 4);
+  parse_packet(packet, &position, &result, &(int64_t){0});
+  assert(position <= packet_len * 4);
 
   printf("Sum of all packets version: %d\n", result);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+  char *raw_packet = toktok(&input, "\n");
+
+  // decode the packet
+  size_t packet_len = input - raw_packet - 1;
+  uint8_t *packet = calloc(packet_len, sizeof(uint8_t));
+
+  size_t len = decode_n(raw_packet, packet_len, packet);
+  printf("Packet size | hex: %zu   bin: %zu\n", packet_len, packet_len * 4);
+  assert(len == packet_len);
+  // dump_packet(packet, packet_len);
+
+  int64_t op_total = -1;
+  uint32_t position = 0;
+
+  // parse the packet and get the sum of the versions
+  parse_packet(packet, &position, &(uint32_t){0}, &op_total);
+  assert(position <= packet_len * 4);
+
+  printf("Total: %ld\n", op_total);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
