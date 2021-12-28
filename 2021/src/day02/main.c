@@ -3,31 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <aoclib.h>
 
 #if 0
 #define INPUT_FILE "./src/day02/sample.txt"
 #else
 #define INPUT_FILE "./src/day02/inputs.txt"
 #endif
-
-char *read_file() {
-  FILE *file = fopen(INPUT_FILE, "r");
-
-  if (file == NULL) {
-    fprintf(stderr, "Could not find file %s\n", INPUT_FILE);
-    exit(1);
-  }
-
-  fseek(file, 0, SEEK_END);
-  size_t file_size = ftell(file);
-  rewind(file);
-
-  char *content = malloc(file_size + 1);
-  fread(content, sizeof(char), file_size, file);
-
-  fclose(file);
-  return content;
-}
 
 typedef enum { FORWARD = 7, UP = 2, DOWN = 4 } InstructionKind;
 
@@ -55,7 +37,7 @@ Instruction next_instruction(char **input) {
 }
 
 void part_one() {
-  char *inputs = read_file();
+  char *inputs = read_file(INPUT_FILE);
   char *ptr = inputs;
 
   int x = 0, yp = 0, yn = 0;
@@ -77,7 +59,7 @@ void part_one() {
 }
 
 void part_two() {
-  char *inputs = read_file();
+  char *inputs = read_file(INPUT_FILE);
   char *ptr = inputs;
 
   int x = 0, ap = 0, an = 0, y = 0;

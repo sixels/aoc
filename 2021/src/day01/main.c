@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "aoclib.h"
 
 #if 0
 #define INPUT_FILE "./src/day01/sample.txt"
@@ -9,27 +10,8 @@
 #define INPUT_FILE "./src/day01/inputs.txt"
 #endif
 
-char *read_file() {
-  FILE *file = fopen(INPUT_FILE, "r");
-
-  if (file == NULL) {
-    fprintf(stderr, "Could not find file %s\n", INPUT_FILE);
-    exit(1);
-  }
-
-  fseek(file, 0, SEEK_END);
-  size_t file_size = ftell(file);
-  rewind(file);
-
-  char *content = malloc(file_size + 1);
-  fread(content, sizeof(char), file_size, file);
-
-  fclose(file);
-  return content;
-}
-
 int part_one() {
-  char *input = read_file();
+  char *input = read_file(INPUT_FILE);
   char *ptr = input;
 
   int offset = 0, last_depth = 0, increased = -1;
@@ -56,20 +38,8 @@ int part_one() {
   return increased;
 }
 
-int next_num(char **input) {
-  int offset = 0;
-  for (char ch = **input;; ch = (*input)[offset++]) {
-    if (ch == '\n' || ch == '\0') {
-      const int depth = atoi(*input);
-      *input += offset;
-
-      return depth;
-    }
-  }
-}
-
 int part_two() {
-  char *input = read_file();
+  char *input = read_file(INPUT_FILE);
   char *ptr = input;
 
   int increased = -1;

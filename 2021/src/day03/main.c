@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "aoclib.h"
 
 #if 0
 #define INPUT_FILE "./src/day03/sample.txt"
@@ -10,25 +11,6 @@
 #define INPUT_FILE "./src/day03/inputs.txt"
 #define BITSLEN 12
 #endif
-
-char *read_file() {
-  FILE *file = fopen(INPUT_FILE, "r");
-
-  if (file == NULL) {
-    fprintf(stderr, "Could not find file %s\n", INPUT_FILE);
-    exit(1);
-  }
-
-  fseek(file, 0, SEEK_END);
-  size_t file_size = ftell(file);
-  rewind(file);
-
-  char *content = malloc(file_size + 1);
-  fread(content, sizeof(char), file_size, file);
-
-  fclose(file);
-  return content;
-}
 
 void print_bits(int *bits) {
   for (int i = 0; i < BITSLEN; i++) {
@@ -56,7 +38,7 @@ void next_bits(char **input, int *bits, int *sum) {
 }
 
 void part_one() {
-  char *inputs = read_file();
+  char *inputs = read_file(INPUT_FILE);
   char *ptr = inputs;
 
   int sum[BITSLEN] = {};
@@ -87,7 +69,7 @@ typedef struct trie {
 } Trie;
 
 void part_two() {
-  char *inputs = read_file();
+  char *inputs = read_file(INPUT_FILE);
   char *ptr = inputs;
 
   int bits[BITSLEN] = {};

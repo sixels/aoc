@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "aoclib.h"
+
 #if 0
 #define INPUT_FILE "./src/day04/sample.txt"
 #else
@@ -23,25 +25,6 @@ typedef struct {
   int sum;
 } Board;
 
-char *read_file() {
-  FILE *file = fopen(INPUT_FILE, "r");
-
-  if (file == NULL) {
-    fprintf(stderr, "Could not find file %s\n", INPUT_FILE);
-    exit(1);
-  }
-
-  fseek(file, 0, SEEK_END);
-  size_t file_size = ftell(file);
-  rewind(file);
-
-  char *content = malloc(file_size + 1);
-  fread(content, sizeof(char), file_size, file);
-
-  fclose(file);
-  return content;
-}
-
 void print_board(Board board) {
   for (int y = 0; y < N; y++) {
     for (int x = 0; x < N; x++) {
@@ -49,20 +32,6 @@ void print_board(Board board) {
     }
     printf("\n");
   }
-}
-
-int next_num(char **input) {
-  while (**input < '0' || **input > '9') {
-    if (**input == '\0')
-      return 0;
-    (*input)++;
-  }
-
-  char *num_str = *input;
-  while (**input >= '0' && **input <= '9')
-    (*input)++;
-
-  return atoi(num_str);
 }
 
 int win(const Board board) {
@@ -87,7 +56,7 @@ int win(const Board board) {
 }
 
 void part_one() {
-  char *input = read_file();
+  char *input = read_file(INPUT_FILE);
   char *ptr = input;
 
   int *draws = calloc(1024, sizeof(int));
@@ -168,7 +137,7 @@ l_end:
 }
 
 void part_two() {
-  char *input = read_file();
+  char *input = read_file(INPUT_FILE);
   char *ptr = input;
 
   int *draws = calloc(1024, sizeof(int));
