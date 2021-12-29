@@ -44,7 +44,9 @@ bool simulate_prop(int vx, int vy, Vec2 area[2], int *max_height) {
   do {
     pos.x = pos.x + vx;
     pos.y += vy;
-    vx -= pos.x < 0 ? -1 : 1;
+
+    // printf("(%d,%d)\n", pos.x, pos.y);
+    vx -= vx > 0 ? 1 : vx == 0 ? 0 : -1;
     vy -= 1;
 
     if (pos.y > *max_height) {
@@ -52,7 +54,7 @@ bool simulate_prop(int vx, int vy, Vec2 area[2], int *max_height) {
     }
 
     if (intersect_area(pos, area)) return true;
-  } while (pos.x <= area[1].x && pos.y >= area[1].y);
+  } while (pos.x <= (area[1].x) && pos.y >= (area[1].y));
   return false;
 }
 
@@ -72,11 +74,11 @@ void part_one(char *input) {
 
   int max_height = INT_MIN;
 
-  for (int vx = -500; vx < 500; vx++) {
-    for (int vy = -500; vy < 500; vy++) {
+  for (int vx = 1; vx <= area[1].x+1; vx++) {
+    for (int vy = area[1].y; vy < 500; vy++) {
       int height = INT_MIN;
       if (simulate_prop(vx, vy, area, &height)) {
-        printf("(%d,%d) = %d\n", vx, vy, height);
+        // printf("(%d,%d) = %d\n", vx, vy, height);
         if (height > max_height) {
           max_height = height;
         }
@@ -86,7 +88,32 @@ void part_one(char *input) {
   printf("%d\n", max_height);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+  toktok(&input, "x");
+  input++;
+
+  int x0, x1, y0, y1;
+  input = parse_range(input, &x0, &x1) + 2;
+  parse_range(input, &y0, &y1);
+  printf("x=%d..%d   y=%d..%d\n", x0, x1, y0, y1);
+
+  Vec2 area[2] = {
+      vec2(min(x0, x1), max(y0, y1)),  // upper-left
+      vec2(max(x0, x1), min(y0, y1)),  // bottom-right
+  };
+
+  int n = 0;
+  // printf("%d-<\n", simulate_prop(6, 9, area, &(int){6, 8}));
+  for (int vx = 1; vx <= area[1].x+1; vx++) {
+    for (int vy = area[1].y; vy < 500; vy++) {
+      if (simulate_prop(vx, vy, area, &(int){INT_MIN})) {
+        printf("%d,%d\n", vx, vy);
+        n++;
+      }
+    }
+  }
+  printf("%d\n", n);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
