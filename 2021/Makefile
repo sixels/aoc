@@ -2,7 +2,7 @@ CC := gcc
 CFLAGS := -std=c11 -Wall -Wextra -Wshadow -Ilib -g -lm -ftrapv -fsanitize=undefined
 
 all: \
-	day01 day02 day03 day04 day05 day06 day07 day08 day09 day10 day11 day12 day13 day14 day15 day16 day17 day18 
+	day01 day02 day03 day04 day05 day06 day07 day08 day09 day10 day11 day12 day13 day14 day15 day16 day17 day18 day19 
 
 
 .PHONY: day01
@@ -94,3 +94,8 @@ day17:
 day18:
 	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day18/main.c lib/aoclib.c
 	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day18/main.c lib/aoclib.c
+
+.PHONY: day19
+day19:
+	$(CC) $(CFLAGS) -DPARTONE -o build/$@.1.out ./src/day19/main.c lib/aoclib.c
+	$(CC) $(CFLAGS) -DPARTTWO -o build/$@.2.out ./src/day19/main.c lib/aoclib.c
