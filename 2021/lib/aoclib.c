@@ -1,5 +1,6 @@
 #include "aoclib.h"
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,7 +23,7 @@ char *read_file(char *file_path) {
   return content;
 }
 
-char *toktok(char **str, char *del) {
+char *toktok(char **__restrict__ str, char *__restrict__ del) {
   if (!str || !*str) return NULL;
 
   char *token = *str;
@@ -33,6 +34,23 @@ char *toktok(char **str, char *del) {
 
   while (1)
     if (dels[(int)*((*str)++)]) break;
+
+  return token;
+}
+
+char *tokntok(char ** str, char * del, size_t n) {
+  if (!str || !*str) return NULL;
+
+  char *token = *str;
+  char dels[128] = {0};
+
+  while (del && *del) dels[(int)*(del++)] = 1;
+  dels[0] = 1;
+
+  while (n) {
+    if (dels[(int)*((*str)++)]) break;
+    n--;
+  }
 
   return token;
 }
