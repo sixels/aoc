@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -std=c11 -Wall -Wextra -Wshadow -Ilib -g -lm -fsanitize=undefine -ftrapv -pedantic
+CFLAGS := -std=c11 -Wall -Wextra -Wshadow -Ilib -g -lm -ftrapv -fsanitize=undefined  -pedantic
 
 all: \
 	# MAKE ALL DAYS
