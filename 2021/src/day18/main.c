@@ -27,7 +27,8 @@ struct node {
 };
 
 // keep track of all nodes to avoid memory allocation
-static struct node nodes[20000];
+#define MAX_NODES 15000
+static struct node nodes[MAX_NODES];
 static size_t nodes_len = 0;
 
 typedef struct {
@@ -39,12 +40,17 @@ void json_tree();
 void inline_tree();
 
 struct node *new_node(uint64_t value, bool is_pair) {
-  nodes[nodes_len] = (struct node){.value = value,
+  struct node node = (struct node){.value = value,
                                    .left = NULL,
                                    .right = NULL,
                                    .parent = NULL,
                                    .is_pair = is_pair};
-  return &nodes[nodes_len++];
+
+  int i = nodes_len;
+  nodes[i] = node;
+  nodes_len = (nodes_len + 1) % MAX_NODES;
+
+  return &nodes[i];
 }
 
 #define is_pair(value) (value[0] == '[')
@@ -92,15 +98,6 @@ struct node *parse_pairs(char *input, int input_len) {
   root->left->parent = root;
   root->right->parent = root;
 
-  return root;
-}
-
-struct node *add(struct node *a, struct node *b) {
-  struct node *root = new_node(0, true);
-  root->left = a;
-  root->left->parent = root;
-  root->right = b;
-  root->right->parent = root;
   return root;
 }
 
@@ -221,6 +218,21 @@ bool reduce(struct node *root, uint64_t depth, enum action action) {
   return false;
 }
 
+struct node *add(struct node *a, struct node *b) {
+  struct node *root = new_node(0, true);
+  root->left = a;
+  root->left->parent = root;
+  root->right = b;
+  root->right->parent = root;
+
+  while (reduce(root, 0, EXPLODE)) {
+  }
+  while (reduce(root, 0, SPLIT)) {
+  }
+
+  return root;
+}
+
 uint64_t calc_magnitude(struct node *root) {
   if (!root) return 0;
 
@@ -253,18 +265,9 @@ void part_one(char *input) {
     // printf("\n+  ");
     // inline_tree(b);
 
-    result = add(result, b);
-    // printf("\n-> ");
-    // inline_tree(result);
-
     // printf("\n");
-
-    while (reduce(result, 0, EXPLODE)) {
-    }
-    while (reduce(result, 0, SPLIT)) {
-    }
-
-    // printf("=  ");
+    result = add(result, b);
+    // printf("\n=  ");
     // inline_tree(result);
     // printf("\n\n");
   }
@@ -273,7 +276,40 @@ void part_one(char *input) {
   // json_tree(result);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+  String lines[200];
+  int lines_len = 0;
+
+  uint64_t max_mag = 0;
+
+  do {
+    char *line = toktok(&input, "\n") + 1;
+    int line_len = input - line - 2;
+
+    lines[lines_len++] = (String){.str = line, .len = line_len};
+  } while (*input && *(input - 1));
+
+  for (int i = 0; i < lines_len - 1; i++) {
+    for (int j = 1; j < lines_len; j++) {
+      {
+        struct node *a = parse_pairs(lines[i].str, lines[i].len);
+        struct node *b = parse_pairs(lines[j].str, lines[j].len);
+
+        uint64_t mag = calc_magnitude(add(a, b));
+        max_mag = max(mag, max_mag);
+      }
+      {
+        struct node *a = parse_pairs(lines[i].str, lines[i].len);
+        struct node *b = parse_pairs(lines[j].str, lines[j].len);
+
+        uint64_t mag = calc_magnitude(add(b, a));
+        max_mag = max(mag, max_mag);
+      }
+    }
+  }
+
+  printf("Max magnitude = %ld\n", max_mag);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
