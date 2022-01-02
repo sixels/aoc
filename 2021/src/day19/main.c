@@ -38,6 +38,14 @@ Vec3 vec3_translate(Vec3 *a, Vec3 b) {
 }
 Vec3 vec3_diff(Vec3 a, Vec3 b) { return vec3(a.x - b.x, a.y - b.y, a.z - b.z); }
 
+#define abs64(a) (a < 0) ? -(a) : (a)
+uint64_t vec3_taxicab(Vec3 a, Vec3 b) {
+  uint64_t x = abs64(a.x - b.x);
+  uint64_t y = abs64(a.y - b.y);
+  uint64_t z = abs64(a.z - b.z);
+  return x + y + z;
+}
+
 // (xa-xb)^2 + (ya-yb)^2 + (za-zb)^2
 int64_t vec3_sq_distance(Vec3 a, Vec3 b) {
   Vec3 diff = vec3_diff(a, b);
@@ -49,6 +57,7 @@ typedef struct {
   Vec3 beacons[30];
   size_t nbeacons;
 
+  Vec3 origin;
   bool aligned;
 } Scanner;
 
@@ -202,7 +211,7 @@ void align_scanner(Scanner *s) {
 
     if (xoff && yoff && zoff) {
       Vec3 origin = vec3(xv, yv, zv);
-      // printf("Origin: %ld,%ld,%ld\n", xv, yv, zv);
+      s->origin = origin;
 
       memcpy(s->beacons, beacons, sizeof(s->beacons));
 
@@ -216,7 +225,6 @@ void align_scanner(Scanner *s) {
 }
 
 void part_one(char *input) {
-  size_t beacons = 0;
   size_t scanners_len = 0;
 
   // parse inputs
@@ -235,7 +243,6 @@ void part_one(char *input) {
         char *coord = tokntok(&coords, coords_len + 1, ",\n");
         scanner->beacons[scanner->nbeacons].v[i] = (int64_t)atoi(coord);
       }
-      beacons++;
       scanner->nbeacons++;
       scanner->aligned = false;
     }
@@ -268,7 +275,60 @@ void part_one(char *input) {
   printf("N beacons: %lu\n", ab_len);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+  size_t scanners_len = 0;
+
+  // parse inputs
+  do {
+    input++;
+    // if (*input == '\n')
+    toktok(&input, "\n");
+    Scanner *scanner = &scanners[scanners_len];
+    scanner->i = scanners_len++;
+
+    while (*input && *input != '\n') {
+      char *coords = toktok(&input, "\n");
+      size_t coords_len = input - coords - 1;
+
+      for (size_t i = 0; i < 3; i++) {
+        char *coord = tokntok(&coords, coords_len + 1, ",\n");
+        scanner->beacons[scanner->nbeacons].v[i] = (int64_t)atoi(coord);
+      }
+      scanner->nbeacons++;
+      scanner->aligned = false;
+    }
+  } while (*input && *(input - 1));
+
+  scanners[0].aligned = true;
+  scanners[0].origin = vec3(0,0,0);
+  save_beacons(scanners[0].nbeacons, scanners[0].beacons);
+
+  bool aligned[N_SCANNERS];
+  memset(aligned, 0, sizeof(aligned));
+
+  for (size_t i = 1;; i = (i + 1) % N_SCANNERS) {
+    Scanner *s = &scanners[i];
+
+    align_scanner(s);
+    aligned[s->i] = s->aligned;
+    printf("%d -> %d\n", s->i, s->aligned);
+
+    bool all_aligned = true;
+    for (size_t j = 0; j < N_SCANNERS; j++) {
+      all_aligned &= aligned[j];
+    }
+    if (all_aligned) break;
+  }
+
+  uint64_t mdist = 0;
+  for (size_t i = 0; i < N_SCANNERS - 1; i++) 
+    for (size_t j = i + 1; j < N_SCANNERS; j++) {
+      uint64_t tmp = vec3_taxicab(scanners[i].origin, scanners[j].origin);
+      mdist = max(tmp, mdist);
+    }
+
+  printf("Manhattan Distance: %lu\n", mdist);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
