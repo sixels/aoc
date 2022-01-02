@@ -38,7 +38,7 @@ char *toktok(char **__restrict__ str, char *__restrict__ del) {
   return token;
 }
 
-char *tokntok(char ** str, char * del, size_t n) {
+char *tokntok(char **str, size_t n, char *del) {
   if (!str || !*str) return NULL;
 
   char *token = *str;
