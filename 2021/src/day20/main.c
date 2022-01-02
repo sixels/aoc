@@ -123,7 +123,25 @@ void part_one(char *input) {
   free(image);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+    uint8_t rules[N_RULES];
+  uint8_t *image = calloc(INPUT_IMAGE_SIZE, sizeof(uint8_t));
+  parse_inputs(input, rules, image);
+
+  int16_t cols = N_COLS;
+  uint64_t count = 0;
+
+  for (int i = 0; i < 50; i++) {
+    // print_image(image, cols);
+    count = 0;
+    enhance_image(rules, &image, &cols, &count);
+  }
+  print_image(image, cols);
+
+  printf("Lit pixels: %lu\n", count);
+
+  free(image);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
