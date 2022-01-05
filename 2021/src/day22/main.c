@@ -25,7 +25,7 @@ typedef struct {
 } Cuboid;
 
 typedef struct {
-  Cuboid cs[40000];
+  Cuboid cs[45000];
   size_t l;
 } Cuboids;
 
@@ -135,7 +135,48 @@ void part_one(char *input) {
   printf("Solution: %ld\n", result);
 }
 
-void part_two(char *input) {}
+void part_two(char *input) {
+    Cuboids cuboids;
+  memset(&cuboids, 0, sizeof(Cuboids));
+
+  do {
+    char *line = toktok(&input, "\n");
+
+    Cuboid c = parse_line(line);
+
+    cuboids.cs[cuboids.l++] = c;
+  } while (*input && input[-1]);
+
+  Cuboids cores;
+  memset(&cores, 0, sizeof(Cuboids));
+
+  for (size_t i = 0; i < cuboids.l; i++) {
+    Cuboids intersections;
+    memset(&intersections, 0, sizeof(Cuboids));
+    // check if the cuboid intercepts other cores
+    for (size_t j = 0; j < cores.l; j++) {
+      Cuboid intersection;
+      if (cuboid_intersects(cuboids.cs[i], cores.cs[j], &intersection))
+        intersections.cs[intersections.l++] = intersection;
+    }
+    if (cuboids.cs[i].state == 1) {
+      cores.cs[cores.l++] = cuboids.cs[i];
+    }
+    for (size_t inter = 0; inter < intersections.l; inter++) {
+      cores.cs[cores.l++] = intersections.cs[inter];
+    }
+  }
+
+  int64_t result = 0;
+  for (size_t i = 0; i < cores.l; i++) {
+    Cuboid c = cores.cs[i];
+    // print_cuboid(c);
+    result += c.state * (c.x[1] - c.x[0] + 1) * (c.y[1] - c.y[0] + 1) *
+              (c.z[1] - c.z[0] + 1);
+  }
+
+  printf("Solution: %ld\n", result);
+}
 
 int main(void) {
   char *input = read_file(INPUT_FILE);
